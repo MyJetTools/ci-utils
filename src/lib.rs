@@ -10,6 +10,7 @@ pub fn sync_and_build_proto_file(url_resource: &str, proto_file_name: &str) {
     let mut f = std::fs::OpenOptions::new()
         .write(true)
         .truncate(true)
+        .create(true)
         .open(proto_path_and_file.as_str())
         .unwrap();
 
