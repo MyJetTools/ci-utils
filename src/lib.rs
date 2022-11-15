@@ -1,6 +1,12 @@
 pub fn sync_and_build_proto_file(url_resource: &str, proto_file_name: &str) {
     let url = format!("{}{}", url_resource, proto_file_name);
     let response = reqwest::blocking::get(url).unwrap();
+    if !response.status().is_success() {
+        panic!(
+            "Failed to download proto file. Http Status is: {}",
+            response.status()
+        );
+    }
     let content = response.text().unwrap();
 
     println!("Proto file {} is downloaded", proto_file_name);
