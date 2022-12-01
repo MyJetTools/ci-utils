@@ -11,7 +11,7 @@ pub fn sync_and_build_proto_file(url_resource: &str, proto_file_name: &str) {
 
     println!("Proto file {} is downloaded", proto_file_name);
 
-    let proto_path_and_file = format!("proto/{}", proto_file_name);
+    let proto_path_and_file = format!("proto{}{}", std::path::MAIN_SEPARATOR, proto_file_name);
 
     let mut f = std::fs::OpenOptions::new()
         .write(true)
