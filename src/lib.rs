@@ -9,6 +9,10 @@ pub fn sync_and_build_proto_file(url_resource: &str, proto_file_name: &str) {
     println!("Proto file {} is compiled", proto_file_name);
 }
 
+pub fn build_proto_from_file(path: &str){
+    tonic_build::compile_protos(path).unwrap();
+}
+
 pub fn sync_and_build_proto_file_with_builder(
     url_resource: &str,
     proto_file_name: &str,
