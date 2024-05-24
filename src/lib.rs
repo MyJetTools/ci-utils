@@ -1,3 +1,5 @@
+pub mod js;
+
 pub fn sync_and_build_proto_file(url_resource: &str, proto_file_name: &str) {
     let url = format!("{}{}", url_resource, proto_file_name);
     let response = reqwest::blocking::get(url).unwrap();
