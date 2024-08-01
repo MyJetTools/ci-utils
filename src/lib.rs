@@ -28,15 +28,28 @@ pub fn download_file(url_resource: &str, dest_path: &str) {
 
     let content = response.text().unwrap();
 
-    let mut f = std::fs::OpenOptions::new()
+    let f = std::fs::OpenOptions::new()
         .write(true)
         .truncate(true)
         .create(true)
-        .open(dest_path)
-        .unwrap();
+        .open(dest_path);
 
-    std::io::Write::write_all(&mut f, content.as_bytes()).unwrap();
-    std::io::Write::flush(&mut f).unwrap();
+    if let Err(e) = &f {
+        panic!("Failed to open file {}. Err: {}", dest_path, e);
+    }
+
+    let mut f = f.unwrap();
+
+    let write_result = std::io::Write::write_all(&mut f, content.as_bytes());
+
+    if let Err(e) = &write_result {
+        panic!("Failed to write to file {}. Err: {}", dest_path, e);
+    }
+    let result = std::io::Write::flush(&mut f);
+
+    if let Err(e) = &result {
+        panic!("Failed to flush to file {}. Err: {}", dest_path, e);
+    }
 }
 
 pub fn sync_and_build_proto_file_with_builder(
