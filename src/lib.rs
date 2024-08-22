@@ -186,7 +186,6 @@ fn prepare_proto_files_from_private_github(
 
     std::io::Write::write_all(&mut f, proto_file_content.as_bytes()).unwrap();
     std::io::Write::flush(&mut f).unwrap();
-    panic!("Proto file {} is updated", proto_path_and_file);
 
     proto_path_and_file
 }
