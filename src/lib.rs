@@ -73,7 +73,18 @@ pub fn sync_and_build_proto_file_with_builder(
 
 fn prepare_proto_files(url_resource: &str, proto_file_name: &str) -> String {
     let url = format!("{}{}", url_resource, proto_file_name);
-    let response = reqwest::blocking::get(url).unwrap();
+
+    let response = if let Ok(git_hub_token) = std::env::var("GIT_HUB_TOKEN") {
+        let client = reqwest::blocking::Client::new();
+        client
+            .get(url)
+            .header("Authorization", format!("token {}", git_hub_token))
+            .send()
+            .unwrap()
+    } else {
+        reqwest::blocking::get(url).unwrap()
+    };
+
     if !response.status().is_success() {
         panic!(
             "Failed to download proto file. Http Status is: {}",
