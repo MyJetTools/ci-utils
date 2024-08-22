@@ -4,6 +4,8 @@ use std::path::Path;
 
 use tonic_build::Builder;
 
+pub extern crate tonic_build;
+
 pub fn sync_and_build_proto_file(url_resource: &str, proto_file_name: &str) {
     let proto_path_and_file = prepare_proto_files(url_resource, proto_file_name);
 
