@@ -130,8 +130,6 @@ fn prepare_proto_files_from_private_github(
     repo_name: &str,
     file_path: &str,
 ) -> String {
-    use rust_extensions::base64::FromBase64;
-
     let url = format!("https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}");
 
     let response = if let Ok(git_hub_token) = std::env::var("GIT_HUB_TOKEN") {
@@ -165,12 +163,14 @@ fn prepare_proto_files_from_private_github(
     let content = map.get("content").unwrap();
 
     let mut proto_file_content = String::new();
+
+    use base64::Engine;
+
     for itm in content.as_str().unwrap().split("\n") {
-        proto_file_content.push_str(
-            String::from_utf8(itm.from_base64().unwrap())
-                .unwrap()
-                .as_str(),
-        );
+        let line = base64::engine::general_purpose::STANDARD
+            .decode(itm)
+            .unwrap();
+        proto_file_content.push_str(String::from_utf8(line).unwrap().as_str());
     }
 
     let proto_file_name = file_path.split("/").last().unwrap();

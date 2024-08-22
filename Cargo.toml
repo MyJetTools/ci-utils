@@ -9,6 +9,4 @@ edition = "2021"
 tonic-build = { version = "*", features = ["prost"] }
 reqwest = { version = "*", features = ["blocking"] }
 serde_json = { version = "*" }
-rust-extensions = { tag = "0.1.4", git = "https://github.com/MyJetTools/rust-extensions.git", features = [
-    "base64",
-] }
+base64 = { version = "*" }
