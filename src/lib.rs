@@ -135,7 +135,7 @@ fn prepare_proto_files_from_private_github(
     let response = if let Ok(git_hub_token) = std::env::var("GIT_HUB_TOKEN") {
         let client = reqwest::blocking::Client::new();
         client
-            .get(url)
+            .get(url.as_str())
             .header("Accept", "application/vnd.github+json")
             .header("User-Agent", "RustCiBuilder")
             .header("Authorization", format!("Bearer {}", git_hub_token))
@@ -148,7 +148,8 @@ fn prepare_proto_files_from_private_github(
 
     if !response.status().is_success() {
         panic!(
-            "Failed to download proto file. Http Status is: {}",
+            "Failed to download proto file from {}. Http Status is: {}",
+            url,
             response.status()
         );
     }
