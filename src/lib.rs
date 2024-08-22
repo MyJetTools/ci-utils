@@ -19,8 +19,8 @@ pub fn sync_and_build_proto_file_from_private_github_repo(
     let proto_path_and_file =
         prepare_proto_files_from_private_github(repo_owner_name, repo_name, file_path);
 
-    tonic_build::compile_protos(proto_path_and_file.as_str()).unwrap();
-    println!("Proto file {} is compiled", file_path);
+    //    tonic_build::compile_protos(proto_path_and_file.as_str()).unwrap();
+    //    println!("Proto file {} is compiled", file_path);
 }
 
 pub fn build_proto_from_file(path: &str) {
