@@ -103,10 +103,8 @@ fn prepare_proto_files(url_resource: &str, proto_file_name: &str) -> String {
 
     if !response.status().is_success() {
         panic!(
-            "Failed to download proto file '{}'. Http Status is: {}. Using token: {}",
-            url,
-            response.status(),
-            using_token
+            "Failed to download proto file '{}'. Http Status is: {:?}. Using token: {}",
+            url, response, using_token
         );
     }
     let content = response.text().unwrap();
