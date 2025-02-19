@@ -86,7 +86,11 @@ pub fn sync_and_build_proto_file_with_builder(
 }
 
 fn prepare_proto_files(url_resource: &str, proto_file_name: &str) -> String {
-    let url = format!("{}{}", url_resource, proto_file_name);
+    let url = if url_resource.ends_with("/") {
+        format!("{}{}", url_resource, proto_file_name)
+    } else {
+        format!("{}/{}", url_resource, proto_file_name)
+    };
 
     let mut using_token = false;
     let response = if let Ok(git_hub_token) = std::env::var("GIT_HUB_TOKEN") {
