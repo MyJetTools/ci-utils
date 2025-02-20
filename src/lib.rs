@@ -92,23 +92,12 @@ fn prepare_proto_files(url_resource: &str, proto_file_name: &str) -> String {
         format!("{}/{}", url_resource, proto_file_name)
     };
 
-    let mut using_token = false;
-    let response = if let Ok(git_hub_token) = std::env::var("GIT_HUB_TOKEN") {
-        using_token = true;
-        let client = reqwest::blocking::Client::new();
-        client
-            .get(url.as_str())
-            .header("Authorization", format!("token {}", git_hub_token))
-            .send()
-            .unwrap()
-    } else {
-        reqwest::blocking::get(url.as_str()).unwrap()
-    };
+    let response = reqwest::blocking::get(url.as_str()).unwrap();
 
     if !response.status().is_success() {
         panic!(
-            "Failed to download proto file '{}'. Http Status is: {:?}. Using token: {}",
-            url, response, using_token
+            "Failed to download proto file '{}'. Http Status is: {:?}. Using token: false",
+            url, response
         );
     }
     let content = response.text().unwrap();
