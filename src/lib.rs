@@ -79,9 +79,14 @@ pub fn sync_and_build_proto_file_with_builder(
         .parent()
         .expect("proto file should reside in a directory");
 
-    builder(tonic_build::configure())
-        .compile(&[proto_path], &[proto_dir])
+    let included: [&str; 0] = [];
+    tonic_build::configure()
+        .compile_protos(&["proto"], &included)
         .unwrap();
+
+    //builder(tonic_build::configure())
+    //    .compile(&[proto_path], &[proto_dir])
+    //    .unwrap();
     println!("Proto file {} is compiled", proto_file_name);
 }
 
