@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tonic-build = { version = "0.13", features = ["prost"] }
+tonic-build = { version = "0.13" }
 reqwest = { version = "*", features = ["blocking"] }
 serde_json = { version = "*" }
 base64 = { version = "*" }
