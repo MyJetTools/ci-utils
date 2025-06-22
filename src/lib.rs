@@ -1,11 +1,22 @@
 pub mod js;
-
+mod proto_file_builder;
+pub use proto_file_builder::*;
 pub extern crate tonic_build;
+
+pub fn compile_protos(proto_file_name: &str) {
+    let includes: &[String] = &[];
+    tonic_build::configure()
+        .protoc_arg("--experimental_allow_proto3_optional")
+        .compile_protos(&[proto_file_name], includes)
+        .unwrap();
+}
 
 pub fn sync_and_build_proto_file(url_resource: &str, proto_file_name: &str) {
     let proto_path_and_file = prepare_proto_files(url_resource, proto_file_name);
 
-    tonic_build::compile_protos(proto_path_and_file.as_str()).unwrap();
+    //tonic_build::compile_protos(proto_path_and_file.as_str()).unwrap();
+
+    compile_protos(&proto_path_and_file);
     println!("Proto file {} is compiled", proto_file_name);
 }
 
