@@ -4,7 +4,7 @@ pub use proto_file_builder::*;
 pub extern crate tonic_build;
 
 pub fn compile_protos(proto_file_name: &str) {
-    let includes: &[String] = &["proto"];
+    let includes: &[String] = &["proto".to_string()];
     tonic_build::configure()
         .protoc_arg("--experimental_allow_proto3_optional")
         .compile_protos(&[proto_file_name], includes)
