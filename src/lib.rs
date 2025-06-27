@@ -4,6 +4,8 @@ pub use proto_file_builder::*;
 pub extern crate tonic_build;
 pub mod ci_generator;
 
+const RELEASE_YAML_CONTENT: &[u8] = std::include_bytes!("../release.yml");
+
 pub fn compile_protos(proto_file_name: &str) {
     let includes: &[String] = &["proto".to_string()];
     tonic_build::configure()
