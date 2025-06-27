@@ -5,7 +5,7 @@ pub extern crate tonic_build;
 pub mod ci_generator;
 
 pub fn compile_protos(proto_file_name: &str) {
-    let includes: &[String] = &[];
+    let includes: &[String] = &["proto".to_string()];
     tonic_build::configure()
         .protoc_arg("--experimental_allow_proto3_optional")
         .compile_protos(&[proto_file_name], includes)
