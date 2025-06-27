@@ -1,13 +1,12 @@
 #[derive(Clone, Copy)]
 pub enum DockerFileType {
-    Basic,
+    Basic(&'static str),
 }
 
 impl DockerFileType {
     pub fn generate_docker_file(&self) {
-        let service_name = env!("CARGO_PKG_NAME");
         match self {
-            DockerFileType::Basic => {
+            DockerFileType::Basic(service_name) => {
                 let contents = format!("FROM ubuntu:22.04\nCOPY ./target/release/{service_name} ./target/release/{service_name}\nENTRYPOINT [\"./target/release/{service_name}\"]");
                 std::fs::write("Dockerfile", contents).unwrap();
             }
@@ -24,7 +23,7 @@ impl CiGenerator {
         Self { docker_file: None }
     }
 
-    pub fn as_basic_service(mut self) -> Self {
+    pub fn as_basic_service(mut self, service_name: &'static str) -> Self {
         self.docker_file = Some(DockerFileType::Basic);
         self
     }
