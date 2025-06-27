@@ -24,7 +24,7 @@ impl CiGenerator {
         Self { docker_file: None }
     }
 
-    pub fn with_basic_docker_type(mut self) -> Self {
+    pub fn as_basic_service(mut self) -> Self {
         self.docker_file = Some(DockerFileType::Basic);
         self
     }
