@@ -7,7 +7,10 @@ pub mod ci_generator;
 const RELEASE_YAML_CONTENT: &[u8] = std::include_bytes!("../release.yml");
 
 pub fn compile_protos(proto_file_name: &str) {
-    tonic_prost_build::compile_protos(proto_file_name).unwrap();
+    tonic_prost_build::configure()
+        .protoc_arg("--experimental_allow_proto3_optional")
+        .compile_protos(&[proto_file_name], &["proto"])
+        .unwrap();
 }
 
 pub fn sync_and_build_proto_file(url_resource: &str, proto_file_name: &str) {
@@ -17,10 +20,6 @@ pub fn sync_and_build_proto_file(url_resource: &str, proto_file_name: &str) {
 
     compile_protos(&proto_path_and_file);
     println!("Proto file {} is compiled", proto_file_name);
-}
-
-pub fn build_proto_from_file(path: &str) {
-    tonic_prost_build::compile_protos(path).unwrap();
 }
 
 pub fn download_file(url_resource: &str, dest_path: &str) {
