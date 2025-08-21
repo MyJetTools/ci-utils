@@ -1,17 +1,13 @@
 pub mod js;
 mod proto_file_builder;
 pub use proto_file_builder::*;
-pub extern crate tonic_build;
+pub extern crate tonic_prost_build;
 pub mod ci_generator;
 
 const RELEASE_YAML_CONTENT: &[u8] = std::include_bytes!("../release.yml");
 
 pub fn compile_protos(proto_file_name: &str) {
-    let includes: &[String] = &["proto".to_string()];
-    tonic_build::configure()
-        .protoc_arg("--experimental_allow_proto3_optional")
-        .compile_protos(&[proto_file_name], includes)
-        .unwrap();
+    tonic_prost_build::compile_protos(proto_file_name).unwrap();
 }
 
 pub fn sync_and_build_proto_file(url_resource: &str, proto_file_name: &str) {
@@ -24,7 +20,7 @@ pub fn sync_and_build_proto_file(url_resource: &str, proto_file_name: &str) {
 }
 
 pub fn build_proto_from_file(path: &str) {
-    tonic_build::compile_protos(path).unwrap();
+    tonic_prost_build::compile_protos(path).unwrap();
 }
 
 pub fn download_file(url_resource: &str, dest_path: &str) {
