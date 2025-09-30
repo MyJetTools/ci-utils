@@ -14,7 +14,7 @@ pub fn compile_protos(proto_file_name: &str) {
 }
 
 pub fn sync_and_build_proto_file(url_resource: &str, proto_file_name: &str) {
-    let proto_path_and_file = prepare_proto_files(url_resource, proto_file_name);
+    let proto_path_and_file = prepare_proto_files(url_resource, proto_file_name, false);
 
     //tonic_build::compile_protos(proto_path_and_file.as_str()).unwrap();
 
@@ -59,16 +59,17 @@ pub fn download_file(url_resource: &str, dest_path: &str) {
     }
 }
 
-fn prepare_proto_files(url_resource: &str, proto_file_name: &str, skip_sincing: bool) -> String {
+fn prepare_proto_files(url_resource: &str, proto_file_name: &str, skip_syncing: bool) -> String {
     let url = if url_resource.ends_with("/") {
         format!("{}{}", url_resource, proto_file_name)
     } else {
         format!("{}/{}", url_resource, proto_file_name)
     };
-
-    if skip_sincing {
+    let proto_path_and_file = format!("proto{}{}", std::path::MAIN_SEPARATOR, proto_file_name);
+    if skip_syncing {
         return proto_path_and_file;
     }
+
     let response = reqwest::blocking::get(url.as_str()).unwrap();
 
     if !response.status().is_success() {
@@ -80,8 +81,6 @@ fn prepare_proto_files(url_resource: &str, proto_file_name: &str, skip_sincing: 
     let content = response.text().unwrap();
 
     println!("Proto file {} is downloaded", proto_file_name);
-
-    let proto_path_and_file = format!("proto{}{}", std::path::MAIN_SEPARATOR, proto_file_name);
 
     let mut f = std::fs::OpenOptions::new()
         .write(true)
