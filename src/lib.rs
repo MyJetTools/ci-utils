@@ -59,13 +59,16 @@ pub fn download_file(url_resource: &str, dest_path: &str) {
     }
 }
 
-fn prepare_proto_files(url_resource: &str, proto_file_name: &str) -> String {
+fn prepare_proto_files(url_resource: &str, proto_file_name: &str, skip_sincing: bool) -> String {
     let url = if url_resource.ends_with("/") {
         format!("{}{}", url_resource, proto_file_name)
     } else {
         format!("{}/{}", url_resource, proto_file_name)
     };
 
+    if skip_sincing {
+        return proto_path_and_file;
+    }
     let response = reqwest::blocking::get(url.as_str()).unwrap();
 
     if !response.status().is_success() {
