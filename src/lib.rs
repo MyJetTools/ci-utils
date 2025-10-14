@@ -5,7 +5,7 @@ pub extern crate tonic_prost_build;
 pub mod ci_generator;
 
 const RELEASE_YAML_CONTENT: &str = std::include_str!("../release.yml");
-const FFMPEG_OPTION: &str = std::include_str!("../release.yml");
+const FFMPEG_OPTION: &str = std::include_str!("../ffmpeg.yaml");
 
 pub fn compile_protos(proto_file_name: &str) {
     tonic_prost_build::configure()
