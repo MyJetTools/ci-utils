@@ -4,7 +4,8 @@ pub use proto_file_builder::*;
 pub extern crate tonic_prost_build;
 pub mod ci_generator;
 
-const RELEASE_YAML_CONTENT: &[u8] = std::include_bytes!("../release.yml");
+const RELEASE_YAML_CONTENT: &str = std::include_str!("../release.yml");
+const FFMPEG_OPTION: &str = std::include_str!("../release.yml");
 
 pub fn compile_protos(proto_file_name: &str) {
     tonic_prost_build::configure()

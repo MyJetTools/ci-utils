@@ -1,0 +1,4 @@
+      - name: Install FFMPEG
+        run: |
+          sudo apt-get update
+          sudo apt-get install ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswresample-dev libswscale-dev libavfilter-dev libavdevice-dev -y                    

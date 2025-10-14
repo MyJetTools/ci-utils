@@ -19,6 +19,8 @@ jobs:
         id: get_version
         run: echo ::set-output name=VERSION::$(echo ${GITHUB_REF_NAME})
 
+#Put Options Here        
+
       - name: Updating version
         run: sed -i -e 's/^version = .*/version = "${{ steps.get_version.outputs.VERSION }}"/' Cargo.toml
 
