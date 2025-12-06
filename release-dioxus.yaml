@@ -1,0 +1,69 @@
+name: Release App
+on:
+  push:
+    tags: ["*"]
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+  APP_NAME: chat-bot-admin
+  DELIVER_NAME: chat-bot-adminn
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    container:
+      image: myjettools/dioxus-docker:0.7.0
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Get the version
+        id: get_version
+        run: |
+          echo ::set-output name=VERSION::$(echo ${GITHUB_REF_NAME})      
+
+
+      - name: Updating version
+        run: sed -i -e 's/^version = .*/version = "${{ steps.get_version.outputs.VERSION }}"/' Cargo.toml
+
+      - run: |
+          dx bundle --web --release
+          ls ./target/dx/${APP_NAME}/release/web
+          python3 build.py ./target/dx/${APP_NAME}/release/web/public/index.html
+
+      - name: Zip and upload
+        run: |
+          FILE_NAME="https://jetdev.eu/file/$DELIVER_NAME-build.zip"
+          echo $FILE_NAME
+          apt install zip 
+          zip -r data.zip ./target/dx/${APP_NAME}/release/web ./Dockerfile
+          curl -X 'POST' $FILE_NAME -H 'accept: */*' -H 'Content-Type: multipart/form-data' -F 'file=@data.zip;type=application/zip'
+
+
+  publish:
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v2    
+
+      - name: Download Build Artifacts
+        run: |
+          FILE_NAME="https://jetdev.eu/file/$DELIVER_NAME-build.zip"
+          echo $FILE_NAME
+          curl -L -o data.zip $FILE_NAME
+          unzip -o data.zip
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: build-artifacts
+
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(echo ${GITHUB_REF_NAME})          
+
+      - name: Docker login
+        run: |          
+          echo "${{ secrets.PUBLISH_TOKEN }}" | docker login https://ghcr.io -u "${{ github.actor }}" --password-stdin   
+      - name: Docker Build and Publish
+        run: |          
+          docker build -t ${IMAGE_NAME}:${{ steps.get_version.outputs.VERSION }} .
+          docker push ${IMAGE_NAME}:${{ steps.get_version.outputs.VERSION }}

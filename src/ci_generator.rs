@@ -1,10 +1,16 @@
 #[derive(Clone, Copy)]
 pub enum DockerFileType {
     Basic,
+    Dioxus,
 }
 
 impl DockerFileType {
-    pub fn generate_docker_file(&self, service_name: &'static str, with_ff_mpeg: bool) {
+    pub fn generate_docker_file(
+        &self,
+        service_name: &'static str,
+        with_ff_mpeg: bool,
+        copy_files: &[(&'static str, &'static str)],
+    ) {
         let ff_mpeg = if with_ff_mpeg {
             "RUN apt upgrade -y\nRUN apt update\nRUN apt install ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswresample-dev libswscale-dev libavfilter-dev libavdevice-dev -y\n"
         } else {
@@ -12,10 +18,31 @@ impl DockerFileType {
         };
         match self {
             DockerFileType::Basic => {
-                let contents = format!("FROM ubuntu:22.04\n{ff_mpeg}COPY ./target/release/{service_name} ./target/release/{service_name}\nENTRYPOINT [\"./target/release/{service_name}\"]");
+                let mut contents = format!("FROM ubuntu:22.04\n{ff_mpeg}COPY ./target/release/{service_name} ./target/release/{service_name}\n");
+                push_copy_files(&mut contents, copy_files);
+                contents
+                    .push_str(format!("ENTRYPOINT [\"./target/release/{service_name}\"]").as_str());
+                std::fs::write("Dockerfile", contents).unwrap();
+            }
+            DockerFileType::Dioxus => {
+                let mut contents = format!("FROM myjettools/dioxus-docker:0.7.0\n");
+                push_copy_files(&mut contents, copy_files);
+                let after = format!("{ff_mpeg}\nENV PORT=9001\nENV IP=0.0.0.0\n\nCOPY ./target/dx/{service_name}/release/web /target/dx/{service_name}/release/web\n\nRUN chmod +x /target/dx/{service_name}/release/web/{service_name}\nWORKDIR /target/dx/{service_name}/release/web/\nENTRYPOINT [\"./{service_name}\"]");
+
+                contents.push_str(after.as_str());
                 std::fs::write("Dockerfile", contents).unwrap();
             }
         }
+    }
+}
+
+fn push_copy_files(out: &mut String, copy: &[(&'static str, &'static str)]) {
+    for itm in copy {
+        out.push_str("COPY ");
+        out.push_str(itm.0);
+        out.push(' ');
+        out.push_str(itm.1);
+        out.push('\n');
     }
 }
 
@@ -24,6 +51,7 @@ pub struct CiGenerator {
     docker_file: Option<DockerFileType>,
     generate_github_ci_file: bool,
     with_ff_mpeg: bool,
+    docker_copy: Vec<(&'static str, &'static str)>,
 }
 
 impl CiGenerator {
@@ -33,7 +61,13 @@ impl CiGenerator {
             docker_file: None,
             generate_github_ci_file: false,
             with_ff_mpeg: false,
+            docker_copy: Default::default(),
         }
+    }
+
+    pub fn add_docker_copy_file(mut self, from_file: &'static str, to_file: &'static str) -> Self {
+        self.docker_copy.push((from_file, to_file));
+        self
     }
 
     pub fn as_basic_service(mut self) -> Self {
@@ -53,7 +87,11 @@ impl CiGenerator {
 
     pub fn build(self) {
         if let Some(docker_file) = self.docker_file {
-            docker_file.generate_docker_file(self.service_name, self.with_ff_mpeg);
+            docker_file.generate_docker_file(
+                self.service_name,
+                self.with_ff_mpeg,
+                self.docker_copy.as_slice(),
+            );
         }
 
         if self.generate_github_ci_file {
