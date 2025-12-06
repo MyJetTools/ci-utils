@@ -9,6 +9,7 @@ impl DockerFileType {
         &self,
         service_name: &'static str,
         with_ff_mpeg: bool,
+        container_name: Option<&str>,
         copy_files: &[(&'static str, &'static str)],
     ) {
         let ff_mpeg = if with_ff_mpeg {
@@ -18,14 +19,24 @@ impl DockerFileType {
         };
         match self {
             DockerFileType::Basic => {
-                let mut contents = format!("FROM ubuntu:22.04\n{ff_mpeg}COPY ./target/release/{service_name} ./target/release/{service_name}\n");
+                let container_name = match container_name {
+                    Some(container_name) => container_name,
+                    None => "ubuntu:22.04",
+                };
+
+                let mut contents = format!("FROM {container_name}\n{ff_mpeg}COPY ./target/release/{service_name} ./target/release/{service_name}\n");
                 push_copy_files(&mut contents, copy_files);
                 contents
                     .push_str(format!("ENTRYPOINT [\"./target/release/{service_name}\"]").as_str());
                 std::fs::write("Dockerfile", contents).unwrap();
             }
             DockerFileType::Dioxus => {
-                let mut contents = format!("FROM myjettools/dioxus-docker:0.7.0\n");
+                let container_name = match container_name {
+                    Some(container_name) => container_name,
+                    None => "myjettools/dioxus-docker:0.7.0",
+                };
+
+                let mut contents = format!("FROM {container_name}\n");
                 push_copy_files(&mut contents, copy_files);
                 let after = format!("{ff_mpeg}\nENV PORT=9001\nENV IP=0.0.0.0\n\nCOPY ./target/dx/{service_name}/release/web /target/dx/{service_name}/release/web\n\nRUN chmod +x /target/dx/{service_name}/release/web/{service_name}\nWORKDIR /target/dx/{service_name}/release/web/\nENTRYPOINT [\"./{service_name}\"]");
 
@@ -52,6 +63,7 @@ pub struct CiGenerator {
     generate_github_ci_file: bool,
     with_ff_mpeg: bool,
     docker_copy: Vec<(&'static str, &'static str)>,
+    docker_container_name: Option<&'static str>,
 }
 
 impl CiGenerator {
@@ -62,11 +74,17 @@ impl CiGenerator {
             generate_github_ci_file: false,
             with_ff_mpeg: false,
             docker_copy: Default::default(),
+            docker_container_name: Default::default(),
         }
     }
 
     pub fn add_docker_copy_file(mut self, from_file: &'static str, to_file: &'static str) -> Self {
         self.docker_copy.push((from_file, to_file));
+        self
+    }
+
+    pub fn set_docker_container_name(mut self, container_name: &'static str) -> Self {
+        self.docker_container_name = Some(container_name);
         self
     }
 
@@ -90,6 +108,7 @@ impl CiGenerator {
             docker_file.generate_docker_file(
                 self.service_name,
                 self.with_ff_mpeg,
+                self.docker_container_name,
                 self.docker_copy.as_slice(),
             );
         }
