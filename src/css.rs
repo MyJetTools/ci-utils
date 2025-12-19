@@ -37,8 +37,12 @@ impl CssCompiler {
             content.push_str("\n");
         }
 
-        if let Err(err) = std::fs::write(out_file, content.as_bytes()) {
-            panic!("Can not write file '{}'. Err: {}", out_file, err)
+        let current_content = std::fs::read(out_file).unwrap_or_default();
+
+        if current_content.as_slice() != content.as_bytes() {
+            if let Err(err) = std::fs::write(out_file, content.as_bytes()) {
+                panic!("Can not write file '{}'. Err: {}", out_file, err)
+            }
         }
     }
 }
