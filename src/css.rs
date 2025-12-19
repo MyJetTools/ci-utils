@@ -23,7 +23,7 @@ impl CssCompiler {
             let file_to_open = if self.directory.ends_with(std::path::MAIN_SEPARATOR) {
                 format!("{}{}", self.directory, file)
             } else {
-                format!("{}{}{}", std::path::MAIN_SEPARATOR, self.directory, file)
+                format!("{}{}{}", self.directory, std::path::MAIN_SEPARATOR, file)
             };
 
             let content_to_merge = match std::fs::read_to_string(file_to_open.as_str()) {
@@ -33,12 +33,6 @@ impl CssCompiler {
                 }
             };
 
-            content.push_str("\n");
-            content.push_str("/* ");
-            content.push_str(file);
-            content.push_str("*/");
-            content.push_str("\n");
-            content.push_str("\n");
             content.push_str(content_to_merge.as_str());
             content.push_str("\n");
         }
