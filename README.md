@@ -21,7 +21,7 @@ Always pass `env!("CARGO_PKG_NAME")` to `CiGenerator::new` in `build.rs` so gene
 For Dioxus web builds (release-dioxus.yaml + Dioxus Dockerfile):
 ```rust
 CiGenerator::new(env!("CARGO_PKG_NAME"))
-    .as_dioxus_fullstack_service()              // Dockerfile + release-dioxus.yaml
+    .as_dioxus_fullstack_service()              // Dockerfile + release.yaml
     .set_docker_container_name("myjettools/dioxus-docker:0.x.y") // optional override
     .generate_github_ci_file()
     .with_ci_test()

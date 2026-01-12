@@ -163,7 +163,7 @@ fn generate_github_release_file(with_ff_mpeg: bool) {
         panic!("Can not create folder: {}. Err: {}", basic_path, err);
     }
 
-    let release_file = format!("{}{}release.yml", basic_path, std::path::MAIN_SEPARATOR);
+    let release_file = format!("{}{}release.yaml", basic_path, std::path::MAIN_SEPARATOR);
 
     let yaml_content = replace_versions(crate::RELEASE_YAML_CONTENT);
 
@@ -190,11 +190,7 @@ fn generate_github_release_dioxus_file(service_name: &str, docker_image: &str) {
         panic!("Can not create folder: {}. Err: {}", basic_path, err);
     }
 
-    let release_file = format!(
-        "{}{}release-dioxus.yaml",
-        basic_path,
-        std::path::MAIN_SEPARATOR
-    );
+    let release_file = format!("{}{}release.yaml", basic_path, std::path::MAIN_SEPARATOR);
 
     let dioxus_version = docker_image
         .rsplit_once(':')
