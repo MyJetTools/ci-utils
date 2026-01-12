@@ -6,6 +6,8 @@ pub mod ci_generator;
 pub mod css;
 
 const RELEASE_YAML_CONTENT: &str = std::include_str!("../release.yml");
+const TEST_YAML_CONTENT: &str = std::include_str!("../test.yml");
+const RELEASE_DIOXUS_YAML_CONTENT: &str = std::include_str!("../release-dioxus.yaml");
 const FFMPEG_OPTION: &str = std::include_str!("../ffmpeg.yaml");
 
 pub fn compile_protos(proto_file_name: &str) {

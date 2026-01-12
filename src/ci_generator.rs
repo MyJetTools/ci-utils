@@ -1,3 +1,6 @@
+const CHECKOUT_VERSION: &str = "v6.0.2";
+const RUST_TOOLCHAIN_VERSION: &str = "v1.15.2";
+
 #[derive(Clone, Copy)]
 pub enum DockerFileType {
     Basic,
@@ -64,6 +67,7 @@ pub struct CiGenerator {
     with_ff_mpeg: bool,
     docker_copy: Vec<(&'static str, &'static str)>,
     docker_container_name: Option<&'static str>,
+    ci_test: bool,
 }
 
 impl CiGenerator {
@@ -75,6 +79,7 @@ impl CiGenerator {
             with_ff_mpeg: false,
             docker_copy: Default::default(),
             docker_container_name: Default::default(),
+            ci_test: false,
         }
     }
 
@@ -90,6 +95,11 @@ impl CiGenerator {
 
     pub fn as_basic_service(mut self) -> Self {
         self.docker_file = Some(DockerFileType::Basic);
+        self
+    }
+
+    pub fn with_ci_test(mut self) -> Self {
+        self.ci_test = true;
         self
     }
 
@@ -114,7 +124,14 @@ impl CiGenerator {
         }
 
         if self.generate_github_ci_file {
-            generate_github_release_file(self.with_ff_mpeg)
+            match self.docker_file {
+                Some(DockerFileType::Dioxus) => generate_github_release_dioxus_file(),
+                _ => generate_github_release_file(self.with_ff_mpeg),
+            }
+        }
+
+        if self.ci_test {
+            generate_github_test_file();
         }
     }
 }
@@ -130,7 +147,7 @@ fn generate_github_release_file(with_ff_mpeg: bool) {
 
     let release_file = format!("{}{}release.yml", basic_path, std::path::MAIN_SEPARATOR);
 
-    let yaml_content = crate::RELEASE_YAML_CONTENT;
+    let yaml_content = replace_versions(crate::RELEASE_YAML_CONTENT);
 
     let release_file_to_write = if with_ff_mpeg {
         yaml_content.replace(OPTIONS_SUB_STRING, crate::FFMPEG_OPTION)
@@ -147,4 +164,46 @@ fn generate_github_release_file(with_ff_mpeg: bool) {
             err
         );
     }
+}
+
+fn generate_github_release_dioxus_file() {
+    let basic_path = format!(".github{}workflows", std::path::MAIN_SEPARATOR);
+    if let Err(err) = std::fs::create_dir_all(basic_path.as_str()) {
+        panic!("Can not create folder: {}. Err: {}", basic_path, err);
+    }
+
+    let release_file = format!(
+        "{}{}release-dioxus.yaml",
+        basic_path,
+        std::path::MAIN_SEPARATOR
+    );
+
+    let yaml_content = replace_versions(crate::RELEASE_DIOXUS_YAML_CONTENT);
+
+    if let Err(err) = std::fs::write(release_file.as_str(), yaml_content) {
+        panic!(
+            "Can not create file: {}. Err: {}",
+            release_file.as_str(),
+            err
+        );
+    }
+}
+
+fn generate_github_test_file() {
+    let basic_path = format!(".github{}workflows", std::path::MAIN_SEPARATOR);
+    if let Err(err) = std::fs::create_dir_all(basic_path.as_str()) {
+        panic!("Can not create folder: {}. Err: {}", basic_path, err);
+    }
+
+    let test_file = format!("{}{}test.yml", basic_path, std::path::MAIN_SEPARATOR);
+    let test_content = replace_versions(crate::TEST_YAML_CONTENT);
+    if let Err(err) = std::fs::write(test_file.as_str(), test_content) {
+        panic!("Can not create file: {}. Err: {}", test_file.as_str(), err);
+    }
+}
+
+fn replace_versions(content: &str) -> String {
+    content
+        .replace("${CHECKOUT_VERSION}", CHECKOUT_VERSION)
+        .replace("${RUST_TOOLCHAIN_VERSION}", RUST_TOOLCHAIN_VERSION)
 }

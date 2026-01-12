@@ -15,7 +15,7 @@ jobs:
       image: myjettools/dioxus-docker:0.7.0
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@${CHECKOUT_VERSION}
 
       - name: Get the version
         id: get_version
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: build
     steps:
-      - uses: actions/checkout@v2    
+      - uses: actions/checkout@${CHECKOUT_VERSION}
 
       - name: Download Build Artifacts
         run: |
