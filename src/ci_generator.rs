@@ -2,6 +2,7 @@ const CHECKOUT_VERSION: &str = "v6.0.2";
 const RUST_TOOLCHAIN_VERSION: &str = "v1.15.2";
 const DIOXUS_VERSION: &str = "0.7.2";
 const DIOXUS_DOCKER_IMAGE_DEFAULT: &str = "myjettools/dioxus-docker:0.7.2";
+const DEFAULT_DOCKER_IMAGE_NAME: &str = "ghcr.io/${{ github.repository }}";
 
 #[derive(Clone, Copy)]
 pub enum DockerFileType {
@@ -70,6 +71,7 @@ pub struct CiGenerator {
     docker_copy: Vec<(&'static str, &'static str)>,
     docker_container_name: Option<&'static str>,
     ci_test: bool,
+    image_name: &'static str,
 }
 
 impl CiGenerator {
@@ -82,6 +84,7 @@ impl CiGenerator {
             docker_copy: Default::default(),
             docker_container_name: Default::default(),
             ci_test: false,
+            image_name: DEFAULT_DOCKER_IMAGE_NAME,
         }
     }
 
@@ -90,8 +93,13 @@ impl CiGenerator {
         self
     }
 
-    pub fn set_docker_container_name(mut self, container_name: &'static str) -> Self {
+    pub fn set_docker_container_name_build_from(mut self, container_name: &'static str) -> Self {
         self.docker_container_name = Some(container_name);
+        self
+    }
+
+    pub fn set_docker_image_name(mut self, image_name: &'static str) -> Self {
+        self.image_name = image_name;
         self
     }
 
@@ -142,9 +150,13 @@ impl CiGenerator {
             match self.docker_file {
                 Some(DockerFileType::DioxusFullStack) => {
                     let docker_image = resolved_docker_image.unwrap_or(DIOXUS_DOCKER_IMAGE_DEFAULT);
-                    generate_github_release_dioxus_file(self.service_name, docker_image)
+                    generate_github_release_dioxus_file(
+                        self.service_name,
+                        docker_image,
+                        self.image_name,
+                    )
                 }
-                _ => generate_github_release_file(self.with_ff_mpeg),
+                _ => generate_github_release_file(self.with_ff_mpeg, self.image_name),
             }
         }
 
@@ -154,7 +166,7 @@ impl CiGenerator {
     }
 }
 
-fn generate_github_release_file(with_ff_mpeg: bool) {
+fn generate_github_release_file(with_ff_mpeg: bool, image_name: &str) {
     const OPTIONS_SUB_STRING: &'static str = "#Put Options Here";
     let basic_path = format!(".github{}workflows", std::path::MAIN_SEPARATOR);
     let result = std::fs::create_dir_all(basic_path.as_str());
@@ -165,7 +177,8 @@ fn generate_github_release_file(with_ff_mpeg: bool) {
 
     let release_file = format!("{}{}release.yaml", basic_path, std::path::MAIN_SEPARATOR);
 
-    let yaml_content = replace_versions(crate::RELEASE_YAML_CONTENT);
+    let yaml_content =
+        replace_versions(crate::RELEASE_YAML_CONTENT).replace("${DOCKER_IMAGE_NAME}", image_name);
 
     let release_file_to_write = if with_ff_mpeg {
         yaml_content.replace(OPTIONS_SUB_STRING, crate::FFMPEG_OPTION)
@@ -184,7 +197,7 @@ fn generate_github_release_file(with_ff_mpeg: bool) {
     }
 }
 
-fn generate_github_release_dioxus_file(service_name: &str, docker_image: &str) {
+fn generate_github_release_dioxus_file(service_name: &str, docker_image: &str, image_name: &str) {
     let basic_path = format!(".github{}workflows", std::path::MAIN_SEPARATOR);
     if let Err(err) = std::fs::create_dir_all(basic_path.as_str()) {
         panic!("Can not create folder: {}. Err: {}", basic_path, err);
@@ -199,7 +212,8 @@ fn generate_github_release_dioxus_file(service_name: &str, docker_image: &str) {
 
     let yaml_content = replace_versions(crate::RELEASE_DIOXUS_YAML_CONTENT)
         .replace("${SERVICE_NAME}", service_name)
-        .replace("${DIOXUS_VERSION}", dioxus_version);
+        .replace("${DIOXUS_VERSION}", dioxus_version)
+        .replace("${DOCKER_IMAGE_NAME}", image_name);
 
     if let Err(err) = std::fs::write(release_file.as_str(), yaml_content) {
         panic!(

@@ -4,7 +4,7 @@ on:
     tags: ["*"]
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
+  IMAGE_NAME: ${DOCKER_IMAGE_NAME}
   APP_NAME: ${SERVICE_NAME}
   DELIVER_NAME: ${SERVICE_NAME}
 
