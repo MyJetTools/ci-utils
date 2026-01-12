@@ -5,8 +5,8 @@ on:
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository }}
-  APP_NAME: chat-bot-admin
-  DELIVER_NAME: chat-bot-adminn
+  APP_NAME: ${SERVICE_NAME}
+  DELIVER_NAME: ${SERVICE_NAME}
 
 jobs:
   build:

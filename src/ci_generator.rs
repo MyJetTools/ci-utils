@@ -4,7 +4,7 @@ const RUST_TOOLCHAIN_VERSION: &str = "v1.15.2";
 #[derive(Clone, Copy)]
 pub enum DockerFileType {
     Basic,
-    Dioxus,
+    DioxusFullStack,
 }
 
 impl DockerFileType {
@@ -33,7 +33,7 @@ impl DockerFileType {
                     .push_str(format!("ENTRYPOINT [\"./target/release/{service_name}\"]").as_str());
                 std::fs::write("Dockerfile", contents).unwrap();
             }
-            DockerFileType::Dioxus => {
+            DockerFileType::DioxusFullStack => {
                 let container_name = match container_name {
                     Some(container_name) => container_name,
                     None => "myjettools/dioxus-docker:0.7.0",
@@ -98,6 +98,11 @@ impl CiGenerator {
         self
     }
 
+    pub fn as_dioxus_fullstack_service(mut self) -> Self {
+        self.docker_file = Some(DockerFileType::DioxusFullStack);
+        self
+    }
+
     pub fn with_ci_test(mut self) -> Self {
         self.ci_test = true;
         self
@@ -125,7 +130,7 @@ impl CiGenerator {
 
         if self.generate_github_ci_file {
             match self.docker_file {
-                Some(DockerFileType::Dioxus) => generate_github_release_dioxus_file(),
+                Some(DockerFileType::DioxusFullStack) => generate_github_release_dioxus_file(),
                 _ => generate_github_release_file(self.with_ff_mpeg),
             }
         }
