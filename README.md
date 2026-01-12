@@ -8,15 +8,17 @@ use ci_utils::ci_generator::{CiGenerator, DockerFileType};
 
 fn main() {
     CiGenerator::new(env!("CARGO_PKG_NAME"))
-        .as_basic_service()          // Dockerfile + release.yml + test.yml
+        .as_basic_service()          // Dockerfile + release.yml
         .with_ff_mpeg()              // optional ffmpeg layer + workflow step
         .add_docker_copy_file("./Rocket.toml", "./Rocket.toml")
         .generate_github_ci_file()
-        .with_ci_test()
+        .with_ci_test()              // optional: only if project has unit tests
         .build();
 }
 ```
 Always pass `env!("CARGO_PKG_NAME")` to `CiGenerator::new` in `build.rs` so generated names match the crate.
+
+**Note:** Only add `.with_ci_test()` if the project has at least one unit test (`#[test]`). Skip it for projects without tests.
 
 For Dioxus web builds (release-dioxus.yaml + Dioxus Dockerfile):
 ```rust
@@ -24,7 +26,7 @@ CiGenerator::new(env!("CARGO_PKG_NAME"))
     .as_dioxus_fullstack_service()              // Dockerfile + release.yaml
     .set_docker_container_name("myjettools/dioxus-docker:0.x.y") // optional override
     .generate_github_ci_file()
-    .with_ci_test()
+    // .with_ci_test()                          // optional: only if project has unit tests
     .build();
 ```
 ## Proto utilities
