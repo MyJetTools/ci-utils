@@ -22,12 +22,11 @@ For Dioxus web builds (release-dioxus.yaml + Dioxus Dockerfile):
 ```rust
 CiGenerator::new(env!("CARGO_PKG_NAME"))
     .as_dioxus_fullstack_service()              // Dockerfile + release-dioxus.yaml
-    .set_docker_container_name("myjettools/dioxus-docker:0.7.0") // optional override
+    .set_docker_container_name("myjettools/dioxus-docker:0.x.y") // optional override
     .generate_github_ci_file()
     .with_ci_test()
     .build();
 ```
-
 ## Proto utilities
 
 ```rust
