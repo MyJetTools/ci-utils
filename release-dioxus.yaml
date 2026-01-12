@@ -33,7 +33,7 @@ jobs:
 
       - name: Zip and upload
         run: |
-          FILE_NAME="https://jetdev.eu/file/$DELIVER_NAME-build.zip"
+          FILE_NAME="https://jetdev.eu/file/${SERVICE_NAME}-build.zip"
           echo $FILE_NAME
           apt install zip 
           zip -r data.zip ./target/dx/${APP_NAME}/release/web ./Dockerfile
@@ -48,7 +48,7 @@ jobs:
 
       - name: Download Build Artifacts
         run: |
-          FILE_NAME="https://jetdev.eu/file/$DELIVER_NAME-build.zip"
+          FILE_NAME="https://jetdev.eu/file/${SERVICE_NAME}-build.zip"
           echo $FILE_NAME
           curl -L -o data.zip $FILE_NAME
           unzip -o data.zip

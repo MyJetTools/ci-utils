@@ -1,31 +1,5 @@
 # ci-utils
 
-Utility crate for build-time helpers: generate CI/Docker assets, sync/compile protos, and merge CSS/JS.
-
-## Install
-
-Add as a build-time helper (recommended):
-
-```toml
-[build-dependencies]
-ci-utils = { version = "0.1.3", git = "https://github.com/myjettools/ci-utils.git" }
-```
-
-Then call it from `build.rs` so assets are generated during `cargo build`/`cargo test`.
-
-```rust
-// build.rs
-use ci_utils::ci_generator::{CiGenerator, DockerFileType};
-
-fn main() {
-    CiGenerator::new(env!("CARGO_PKG_NAME"))
-        .as_basic_service()
-        .generate_github_ci_file()
-        .with_ci_test()
-        .build();
-}
-```
-
 ## Use cases
 
 ### Generate Dockerfile + GitHub Actions in `build.rs`
@@ -94,14 +68,3 @@ use ci_utils::js::merge_js_files;
 merge_js_files(&["vendor.js", "app.js"], "public/app.js");
 ```
 Reads from `JavaScript/<file>` and prefixes each chunk with the file name.
-
-## Embedded templates
-
-- `release.yml` and `test.yml` GitHub Actions workflows (versions injected via `CHECKOUT_VERSION` and `RUST_TOOLCHAIN_VERSION` constants).
-- `release-dioxus.yaml` for Dioxus web bundles.
-- `ffmpeg.yaml` snippet that is inserted into the release workflow when `with_ff_mpeg()` is enabled.
-
-## Tips
-
-- Generated workflow files are overwritten when `build()` runs; commit them if you want them versioned.
-- Use it from `build.rs` so CI configs/Dockerfile/proto outputs stay in sync during regular `cargo build` or `cargo test` runs.

@@ -130,7 +130,9 @@ impl CiGenerator {
 
         if self.generate_github_ci_file {
             match self.docker_file {
-                Some(DockerFileType::DioxusFullStack) => generate_github_release_dioxus_file(),
+                Some(DockerFileType::DioxusFullStack) => {
+                    generate_github_release_dioxus_file(self.service_name)
+                }
                 _ => generate_github_release_file(self.with_ff_mpeg),
             }
         }
@@ -171,7 +173,7 @@ fn generate_github_release_file(with_ff_mpeg: bool) {
     }
 }
 
-fn generate_github_release_dioxus_file() {
+fn generate_github_release_dioxus_file(service_name: &str) {
     let basic_path = format!(".github{}workflows", std::path::MAIN_SEPARATOR);
     if let Err(err) = std::fs::create_dir_all(basic_path.as_str()) {
         panic!("Can not create folder: {}. Err: {}", basic_path, err);
@@ -183,7 +185,8 @@ fn generate_github_release_dioxus_file() {
         std::path::MAIN_SEPARATOR
     );
 
-    let yaml_content = replace_versions(crate::RELEASE_DIOXUS_YAML_CONTENT);
+    let yaml_content = replace_versions(crate::RELEASE_DIOXUS_YAML_CONTENT)
+        .replace("${SERVICE_NAME}", service_name);
 
     if let Err(err) = std::fs::write(release_file.as_str(), yaml_content) {
         panic!(
