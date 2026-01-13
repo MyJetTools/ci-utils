@@ -7,7 +7,6 @@ const RUST_TOOLCHAIN_VERSION: &str = "v1.15.2";
 const DIOXUS_VERSION: &str = "0.7.2";
 const DIOXUS_DOCKER_IMAGE_DEFAULT: &str = "myjettools/dioxus-docker:0.7.2";
 const DEFAULT_DOCKER_IMAGE_NAME: &str = "ghcr.io/${{ github.repository }}";
-const PROTOC_VERSION: &'static str = "v3";
 
 #[derive(Clone, Copy)]
 pub enum DockerFileType {
@@ -293,7 +292,7 @@ const BUILD_PART: &'static str = r#"
 
 const BUILD_WITH_PROTOC_PART: &'static str = r#"
       - name: Install Protoc and Build
-        uses: arduino/setup-protoc@${PROTOC_VERSION}            
+        uses: arduino/setup-protoc@v3        
       - run: |
           export GIT_HUB_TOKEN="${{ secrets.PUBLISH_TOKEN }}"
           cargo build --release
