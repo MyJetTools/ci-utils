@@ -267,8 +267,7 @@ fn generate_github_test_file() {
 fn replace_versions(content: &str, with_protoc: Option<bool>) -> String {
     let content = content
         .replace("${CHECKOUT_VERSION}", CHECKOUT_VERSION)
-        .replace("${RUST_TOOLCHAIN_VERSION}", RUST_TOOLCHAIN_VERSION)
-        .replace("${PROTOC_VERSION}", PROTOC_VERSION);
+        .replace("${RUST_TOOLCHAIN_VERSION}", RUST_TOOLCHAIN_VERSION);
 
     match with_protoc {
         Some(with_protoc) => {
