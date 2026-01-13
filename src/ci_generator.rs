@@ -1,3 +1,7 @@
+use core::panic;
+
+use crate::ProtoFileBuilder;
+
 const CHECKOUT_VERSION: &str = "v6.0.2";
 const RUST_TOOLCHAIN_VERSION: &str = "v1.15.2";
 const DIOXUS_VERSION: &str = "0.7.2";
@@ -73,6 +77,7 @@ pub struct CiGenerator {
     docker_container_name: Option<&'static str>,
     ci_test: bool,
     image_name: &'static str,
+    proto_file_builder: Option<ProtoFileBuilder>,
 }
 
 impl CiGenerator {
@@ -86,7 +91,25 @@ impl CiGenerator {
             docker_container_name: Default::default(),
             ci_test: false,
             image_name: DEFAULT_DOCKER_IMAGE_NAME,
+            proto_file_builder: None,
         }
+    }
+
+    pub fn add_proto_files_path(mut self, path: &'static str) -> Self {
+        self.proto_file_builder = Some(ProtoFileBuilder::new(path));
+        self
+    }
+
+    pub fn add_proto_file(mut self, proto_file_name: &'static str) -> Self {
+        let builder = self.proto_file_builder.take();
+
+        let Some(builder) = builder else {
+            panic!("Specify proto files path first");
+        };
+
+        self.proto_file_builder = Some(builder.sync_and_build(proto_file_name));
+
+        self
     }
 
     pub fn add_docker_copy_file(mut self, from_file: &'static str, to_file: &'static str) -> Self {
@@ -157,7 +180,11 @@ impl CiGenerator {
                         self.image_name,
                     )
                 }
-                _ => generate_github_release_file(self.with_ff_mpeg, self.image_name),
+                _ => generate_github_release_file(
+                    self.with_ff_mpeg,
+                    self.image_name,
+                    Some(self.proto_file_builder.is_some()),
+                ),
             }
         }
 
@@ -167,7 +194,7 @@ impl CiGenerator {
     }
 }
 
-fn generate_github_release_file(with_ff_mpeg: bool, image_name: &str) {
+fn generate_github_release_file(with_ff_mpeg: bool, image_name: &str, with_protoc: Option<bool>) {
     const OPTIONS_SUB_STRING: &'static str = "#Put Options Here";
     let basic_path = format!(".github{}workflows", std::path::MAIN_SEPARATOR);
     let result = std::fs::create_dir_all(basic_path.as_str());
@@ -178,8 +205,8 @@ fn generate_github_release_file(with_ff_mpeg: bool, image_name: &str) {
 
     let release_file = format!("{}{}release.yaml", basic_path, std::path::MAIN_SEPARATOR);
 
-    let yaml_content =
-        replace_versions(crate::RELEASE_YAML_CONTENT).replace("${DOCKER_IMAGE_NAME}", image_name);
+    let yaml_content = replace_versions(crate::RELEASE_YAML_CONTENT, with_protoc)
+        .replace("${DOCKER_IMAGE_NAME}", image_name);
 
     let release_file_to_write = if with_ff_mpeg {
         yaml_content.replace(OPTIONS_SUB_STRING, crate::FFMPEG_OPTION)
@@ -211,7 +238,7 @@ fn generate_github_release_dioxus_file(service_name: &str, docker_image: &str, i
         .map(|(_, ver)| ver)
         .unwrap_or("latest");
 
-    let yaml_content = replace_versions(crate::RELEASE_DIOXUS_YAML_CONTENT)
+    let yaml_content = replace_versions(crate::RELEASE_DIOXUS_YAML_CONTENT, None)
         .replace("${SERVICE_NAME}", service_name)
         .replace("${DIOXUS_VERSION}", dioxus_version)
         .replace("${DOCKER_IMAGE_NAME}", image_name);
@@ -232,15 +259,42 @@ fn generate_github_test_file() {
     }
 
     let test_file = format!("{}{}test.yml", basic_path, std::path::MAIN_SEPARATOR);
-    let test_content = replace_versions(crate::TEST_YAML_CONTENT);
+    let test_content = replace_versions(crate::TEST_YAML_CONTENT, None);
     if let Err(err) = std::fs::write(test_file.as_str(), test_content) {
         panic!("Can not create file: {}. Err: {}", test_file.as_str(), err);
     }
 }
 
-fn replace_versions(content: &str) -> String {
-    content
+fn replace_versions(content: &str, with_protoc: Option<bool>) -> String {
+    let content = content
         .replace("${CHECKOUT_VERSION}", CHECKOUT_VERSION)
         .replace("${RUST_TOOLCHAIN_VERSION}", RUST_TOOLCHAIN_VERSION)
-        .replace("${PROTOC_VERSION}", PROTOC_VERSION)
+        .replace("${PROTOC_VERSION}", PROTOC_VERSION);
+
+    match with_protoc {
+        Some(with_protoc) => {
+            if with_protoc {
+                content.replace("#{BUILD}", BUILD_WITH_PROTOC_PART)
+            } else {
+                content.replace("#{BUILD}", BUILD_PART)
+            }
+        }
+
+        None => content,
+    }
 }
+
+const BUILD_PART: &'static str = r#"
+      - name: Build
+      - run: |
+          export GIT_HUB_TOKEN="${{ secrets.PUBLISH_TOKEN }}"
+          cargo build --release
+"#;
+
+const BUILD_WITH_PROTOC_PART: &'static str = r#"
+      - name: Install Protoc and Build
+        uses: arduino/setup-protoc@${PROTOC_VERSION}            
+      - run: |
+          export GIT_HUB_TOKEN="${{ secrets.PUBLISH_TOKEN }}"
+          cargo build --release
+"#;
