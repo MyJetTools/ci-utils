@@ -286,7 +286,7 @@ fn replace_versions(content: &str, with_protoc: Option<bool>) -> String {
 
 const BUILD_PART: &'static str = r#"
       - name: Build
-      - run: |
+        run: |
           export GIT_HUB_TOKEN="${{ secrets.PUBLISH_TOKEN }}"
           cargo build --release
 "#;
