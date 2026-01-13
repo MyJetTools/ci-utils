@@ -3,6 +3,7 @@ const RUST_TOOLCHAIN_VERSION: &str = "v1.15.2";
 const DIOXUS_VERSION: &str = "0.7.2";
 const DIOXUS_DOCKER_IMAGE_DEFAULT: &str = "myjettools/dioxus-docker:0.7.2";
 const DEFAULT_DOCKER_IMAGE_NAME: &str = "ghcr.io/${{ github.repository }}";
+const PROTOC_VERSION: &'static str = "v3";
 
 #[derive(Clone, Copy)]
 pub enum DockerFileType {
@@ -241,4 +242,5 @@ fn replace_versions(content: &str) -> String {
     content
         .replace("${CHECKOUT_VERSION}", CHECKOUT_VERSION)
         .replace("${RUST_TOOLCHAIN_VERSION}", RUST_TOOLCHAIN_VERSION)
+        .replace("${PROTOC_VERSION}", PROTOC_VERSION)
 }
