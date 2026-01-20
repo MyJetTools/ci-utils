@@ -4,6 +4,7 @@ pub use proto_file_builder::*;
 pub extern crate tonic_prost_build;
 pub mod ci_generator;
 pub mod css;
+mod proto_file_utils;
 
 const RELEASE_YAML_CONTENT: &str = std::include_str!("../release.yml");
 const TEST_YAML_CONTENT: &str = std::include_str!("../test.yml");
@@ -38,29 +39,7 @@ pub fn download_file(url_resource: &str, dest_path: &str) {
     }
 
     let content = response.text().unwrap();
-
-    let f = std::fs::OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .create(true)
-        .open(dest_path);
-
-    if let Err(e) = &f {
-        panic!("Failed to open file {}. Err: {}", dest_path, e);
-    }
-
-    let mut f = f.unwrap();
-
-    let write_result = std::io::Write::write_all(&mut f, content.as_bytes());
-
-    if let Err(e) = &write_result {
-        panic!("Failed to write to file {}. Err: {}", dest_path, e);
-    }
-    let result = std::io::Write::flush(&mut f);
-
-    if let Err(e) = &result {
-        panic!("Failed to flush to file {}. Err: {}", dest_path, e);
-    }
+    crate::proto_file_utils::write_file(dest_path, content.as_bytes());
 }
 
 fn prepare_proto_files(url_resource: &str, proto_file_name: &str, skip_syncing: bool) -> String {
@@ -69,9 +48,9 @@ fn prepare_proto_files(url_resource: &str, proto_file_name: &str, skip_syncing: 
     } else {
         format!("{}/{}", url_resource, proto_file_name)
     };
-    let proto_path_and_file = format!("proto{}{}", std::path::MAIN_SEPARATOR, proto_file_name);
+
     if skip_syncing {
-        return proto_path_and_file;
+        return crate::proto_file_utils::format_proto_file_name(proto_file_name);
     }
 
     let response = reqwest::blocking::get(url.as_str()).unwrap();
@@ -86,16 +65,5 @@ fn prepare_proto_files(url_resource: &str, proto_file_name: &str, skip_syncing: 
 
     println!("Proto file {} is downloaded", proto_file_name);
 
-    let mut f = std::fs::OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .create(true)
-        .open(proto_path_and_file.as_str())
-        .unwrap();
-
-    std::io::Write::write_all(&mut f, content.as_bytes()).unwrap();
-    std::io::Write::flush(&mut f).unwrap();
-    println!("Proto file {} is updated", proto_file_name);
-
-    proto_path_and_file
+    crate::proto_file_utils::write_proto_file(proto_file_name, content.as_bytes())
 }
