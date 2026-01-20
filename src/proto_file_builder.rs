@@ -29,12 +29,20 @@ impl ProtoFileBuilder {
 }
 
 fn copy_files(from_path: &str, proto_file_name: &str) -> String {
-    let proto_file_content = match std::fs::read(from_path) {
+    let src_file = format!(
+        "{}{}{}",
+        from_path,
+        std::path::MAIN_SEPARATOR,
+        proto_file_name
+    );
+
+    let proto_file_content = match std::fs::read(src_file.as_str()) {
         Ok(file_content) => file_content,
         Err(err) => {
             panic!(
                 "Can not open proto source file '{}'. Err: {:?}",
-                from_path, err
+                src_file.as_str(),
+                err
             )
         }
     };
