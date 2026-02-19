@@ -76,6 +76,7 @@ pub struct CiGenerator {
     docker_container_name: Option<&'static str>,
     ci_test: bool,
     image_name: &'static str,
+    ci_with_protoc: bool,
     proto_file_builder: Option<ProtoFileBuilder>,
 }
 
@@ -91,11 +92,13 @@ impl CiGenerator {
             ci_test: false,
             image_name: DEFAULT_DOCKER_IMAGE_NAME,
             proto_file_builder: None,
+            ci_with_protoc: false,
         }
     }
 
     pub fn add_proto_files_path(mut self, path: &'static str) -> Self {
         self.proto_file_builder = Some(ProtoFileBuilder::new(path));
+        self.ci_with_protoc = true;
         self
     }
 
@@ -123,6 +126,11 @@ impl CiGenerator {
 
     pub fn set_docker_image_name(mut self, image_name: &'static str) -> Self {
         self.image_name = image_name;
+        self
+    }
+
+    pub fn ci_with_protoc(mut self) -> Self {
+        self.ci_with_protoc = true;
         self
     }
 
@@ -182,7 +190,7 @@ impl CiGenerator {
                 _ => generate_github_release_file(
                     self.with_ff_mpeg,
                     self.image_name,
-                    Some(self.proto_file_builder.is_some()),
+                    Some(self.ci_with_protoc),
                 ),
             }
         }
