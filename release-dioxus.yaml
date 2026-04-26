@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: myjettools/dioxus-docker:${DIOXUS_VERSION}
+      image: ${DEFAULT_DOCKER_IMAGE_NAME}
     steps:
 
       - uses: actions/checkout@${CHECKOUT_VERSION}

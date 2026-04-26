@@ -6,6 +6,7 @@ pub mod ci_generator;
 pub mod css;
 mod generators;
 mod proto_file_utils;
+mod consts;
 
 const RELEASE_YAML_CONTENT: &str = std::include_str!("../release.yml");
 const TEST_YAML_CONTENT: &str = std::include_str!("../test.yml");

@@ -2,10 +2,6 @@ use core::panic;
 
 use crate::ProtoFileBuilder;
 
-const CHECKOUT_VERSION: &str = "v6.0.2";
-const RUST_TOOLCHAIN_VERSION: &str = "v1.15.2";
-const DIOXUS_DOCKER_IMAGE_DEFAULT: &str = "ghcr.io/myjettools/dioxus-docker:0.7.6";
-const DEFAULT_DOCKER_IMAGE_NAME: &str = "ghcr.io/${{ github.repository }}";
 
 #[derive(Clone, Copy)]
 pub enum DockerFileType {
@@ -42,7 +38,7 @@ impl DockerFileType {
             DockerFileType::DioxusFullStack => {
                 let container_name = match container_name {
                     Some(container_name) => container_name,
-                    None => DIOXUS_DOCKER_IMAGE_DEFAULT,
+                    None => crate::consts::DIOXUS_DOCKER_IMAGE_DEFAULT,
                 };
 
                 let mut contents = format!("FROM {container_name}\n");
@@ -89,7 +85,7 @@ impl CiGenerator {
             docker_copy: Default::default(),
             docker_container_name: Default::default(),
             ci_test: false,
-            image_name: DEFAULT_DOCKER_IMAGE_NAME,
+            image_name: crate::consts::DEFAULT_DOCKER_IMAGE_NAME,
             proto_file_builder: None,
             ci_with_protoc: false,
         }
@@ -162,7 +158,7 @@ impl CiGenerator {
         let resolved_docker_image = match self.docker_file {
             Some(DockerFileType::DioxusFullStack) => Some(
                 self.docker_container_name
-                    .unwrap_or(DIOXUS_DOCKER_IMAGE_DEFAULT),
+                    .unwrap_or(crate::consts::DIOXUS_DOCKER_IMAGE_DEFAULT),
             ),
             _ => self.docker_container_name,
         };
@@ -179,7 +175,7 @@ impl CiGenerator {
         if self.generate_github_ci_file {
             match self.docker_file {
                 Some(DockerFileType::DioxusFullStack) => {
-                    let docker_image = resolved_docker_image.unwrap_or(DIOXUS_DOCKER_IMAGE_DEFAULT);
+                    let docker_image = resolved_docker_image.unwrap_or(crate::consts::DIOXUS_DOCKER_IMAGE_DEFAULT);
                     generate_github_release_dioxus_file(
                         self.service_name,
                         docker_image,
@@ -247,7 +243,8 @@ fn generate_github_release_dioxus_file(service_name: &str, docker_image: &str, i
     let yaml_content = replace_versions(crate::RELEASE_DIOXUS_YAML_CONTENT, None)
         .replace("${SERVICE_NAME}", service_name)
         .replace("${DIOXUS_VERSION}", dioxus_version)
-        .replace("${DOCKER_IMAGE_NAME}", image_name);
+        .replace("${DOCKER_IMAGE_NAME}", image_name)
+        .replace("${DEFAULT_DOCKER_IMAGE_NAME}", crate::consts::DEFAULT_DOCKER_IMAGE_NAME);
 
     if let Err(err) = std::fs::write(release_file.as_str(), yaml_content) {
         panic!(
@@ -273,8 +270,8 @@ fn generate_github_test_file() {
 
 fn replace_versions(content: &str, with_protoc: Option<bool>) -> String {
     let content = content
-        .replace("${CHECKOUT_VERSION}", CHECKOUT_VERSION)
-        .replace("${RUST_TOOLCHAIN_VERSION}", RUST_TOOLCHAIN_VERSION);
+        .replace("${CHECKOUT_VERSION}", crate::consts::CHECKOUT_VERSION)
+        .replace("${RUST_TOOLCHAIN_VERSION}", crate::consts::RUST_TOOLCHAIN_VERSION);
 
     match with_protoc {
         Some(with_protoc) => {
