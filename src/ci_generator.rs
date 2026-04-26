@@ -4,7 +4,6 @@ use crate::ProtoFileBuilder;
 
 const CHECKOUT_VERSION: &str = "v6.0.2";
 const RUST_TOOLCHAIN_VERSION: &str = "v1.15.2";
-const DIOXUS_VERSION: &str = "0.7.6";
 const DIOXUS_DOCKER_IMAGE_DEFAULT: &str = "ghcr.io/myjettools/dioxus-docker:0.7.6";
 const DEFAULT_DOCKER_IMAGE_NAME: &str = "ghcr.io/${{ github.repository }}";
 
@@ -42,8 +41,8 @@ impl DockerFileType {
             }
             DockerFileType::DioxusFullStack => {
                 let container_name = match container_name {
-                    Some(container_name) => container_name.to_string(),
-                    None => format!("myjettools/dioxus-docker:{}", DIOXUS_VERSION).to_string(),
+                    Some(container_name) => container_name,
+                    None => DIOXUS_DOCKER_IMAGE_DEFAULT,
                 };
 
                 let mut contents = format!("FROM {container_name}\n");
