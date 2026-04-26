@@ -4,6 +4,7 @@ pub use proto_file_builder::*;
 pub extern crate tonic_prost_build;
 pub mod ci_generator;
 pub mod css;
+mod generators;
 mod proto_file_utils;
 
 const RELEASE_YAML_CONTENT: &str = std::include_str!("../release.yml");

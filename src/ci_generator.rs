@@ -48,7 +48,7 @@ impl DockerFileType {
 
                 let mut contents = format!("FROM {container_name}\n");
                 push_copy_files(&mut contents, copy_files);
-                let after = format!("{ff_mpeg}\nENV PORT=9001\nENV IP=0.0.0.0\n\nCOPY ./target/dx/{service_name}/release/web /target/dx/{service_name}/release/web\n\nRUN chmod +x /target/dx/{service_name}/release/web/{service_name}\nWORKDIR /target/dx/{service_name}/release/web/\nENTRYPOINT [\"./{service_name}\"]");
+                let after = crate::generators::generate_dioxus_fullstack_docker_file(ff_mpeg, service_name);
 
                 contents.push_str(after.as_str());
                 std::fs::write("Dockerfile", contents).unwrap();
