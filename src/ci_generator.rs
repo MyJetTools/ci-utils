@@ -244,7 +244,7 @@ fn generate_github_release_dioxus_file(service_name: &str, docker_image: &str, i
         .replace("${SERVICE_NAME}", service_name)
         .replace("${DIOXUS_VERSION}", dioxus_version)
         .replace("${DOCKER_IMAGE_NAME}", image_name)
-        .replace("${DEFAULT_DOCKER_IMAGE_NAME}", crate::consts::DEFAULT_DOCKER_IMAGE_NAME);
+        .replace("${DIOXUS_DOCKER_IMAGE_NAME}", crate::consts::DIOXUS_DOCKER_IMAGE_DEFAULT);
 
     if let Err(err) = std::fs::write(release_file.as_str(), yaml_content) {
         panic!(
