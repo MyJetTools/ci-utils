@@ -5,7 +5,7 @@ use crate::ProtoFileBuilder;
 const CHECKOUT_VERSION: &str = "v6.0.2";
 const RUST_TOOLCHAIN_VERSION: &str = "v1.15.2";
 const DIOXUS_VERSION: &str = "0.7.6";
-const DIOXUS_DOCKER_IMAGE_DEFAULT: &str = "myjettools/dioxus-docker:0.7.6";
+const DIOXUS_DOCKER_IMAGE_DEFAULT: &str = "ghcr.io/myjettools/dioxus-docker:0.7.6";
 const DEFAULT_DOCKER_IMAGE_NAME: &str = "ghcr.io/${{ github.repository }}";
 
 #[derive(Clone, Copy)]
