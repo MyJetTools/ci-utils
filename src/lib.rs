@@ -14,9 +14,13 @@ const RELEASE_DIOXUS_YAML_CONTENT: &str = std::include_str!("../release-dioxus.y
 const FFMPEG_OPTION: &str = std::include_str!("../ffmpeg.yaml");
 
 pub fn compile_protos(proto_file_name: &str) {
+    compile_protos_with_include(proto_file_name, "proto");
+}
+
+pub fn compile_protos_with_include(proto_file_path: &str, include_dir: &str) {
     tonic_prost_build::configure()
         .protoc_arg("--experimental_allow_proto3_optional")
-        .compile_protos(&[proto_file_name], &["proto"])
+        .compile_protos(&[proto_file_path], &[include_dir])
         .unwrap();
 }
 
