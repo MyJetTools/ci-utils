@@ -17,6 +17,22 @@ impl ProtoFileBuilder {
     }
 
     pub fn sync_and_build(self, proto_file_name: &'static str) -> Self {
+        // A relative path means the protos are a folder in this repository (typically a
+        // shared ../proto-files). Compile them WHERE THEY ARE: copying them into ./proto
+        // first would need that folder to exist, and repositories deliberately do not keep
+        // it - the copy is a leftover of the download-from-URL path, not something a local
+        // source needs.
+        if self.base_url_or_path.starts_with("..") {
+            let src_file = format!(
+                "{}{}{}",
+                self.base_url_or_path,
+                std::path::MAIN_SEPARATOR,
+                proto_file_name
+            );
+            crate::compile_protos_with_include(src_file.as_str(), self.base_url_or_path);
+            return self;
+        }
+
         let proto_file_name = if self.base_url_or_path.starts_with("http") {
             crate::prepare_proto_files(self.base_url_or_path, proto_file_name, self.skip_syncing)
         } else {

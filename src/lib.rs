@@ -60,9 +60,19 @@ pub fn bake_compile_time_secrets(env_var_names: &[&str]) {
 }
 
 pub fn compile_protos(proto_file_name: &str) {
+    compile_protos_with_include(proto_file_name, "proto");
+}
+
+/// Compiles a proto file resolving its imports against `include_dir`.
+///
+/// Kept separate from [`compile_protos`] because a proto referenced straight from a shared
+/// folder (`../proto-files`) is NOT inside the local `proto` directory: protoc requires the
+/// compiled file to sit under one of the include paths and resolves `import` statements
+/// against them, so the include has to follow the file.
+pub fn compile_protos_with_include(proto_file_path: &str, include_dir: &str) {
     tonic_prost_build::configure()
         .protoc_arg("--experimental_allow_proto3_optional")
-        .compile_protos(&[proto_file_name], &["proto"])
+        .compile_protos(&[proto_file_path], &[include_dir])
         .unwrap();
 }
 
