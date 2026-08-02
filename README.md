@@ -3,6 +3,15 @@
 ## Use cases
 
 ### Generate Dockerfile + GitHub Actions in `build.rs`
+
+> **`CiGenerator` is for single-repo services only** (one service = one GitHub repo). It generates
+> `Dockerfile` and `.github/workflows/release.yaml` in the repo root, so it does not apply in a
+> monorepo holding many services: there both workflow files are written by hand -
+> `release-{service-name}.yaml` (triggered by the `{service-name}-*` tag) and
+> `build-{service-name}-docker.yaml` (`workflow_dispatch`, bakes the builder image). Templates and
+> the load-bearing rules are in the app-bootstrap guide, section CI / GitHub Actions. In a monorepo
+> `build.rs` is still needed for `ProtoFileBuilder` and `CssCompiler` - just without `CiGenerator`.
+
 ```rust
 use ci_utils::ci_generator::{CiGenerator, DockerFileType};
 
@@ -159,6 +168,17 @@ Under the hood `build()` prints `cargo:rustc-env=<NAME>=<value>` and
 To bake a value without declaring anything in the workflow - it is baked when the variable is set
 and quietly skipped when it is not - call `ci_utils::bake_compile_time_secret("NAME")` or
 `ci_utils::bake_compile_time_secrets(&["A", "B"])` directly.
+
+> **Inside a monorepo builder container the guarantee does not hold.** A monorepo release builds the
+> service with a `docker run ... cargo build --release` step, and the container does not inherit the
+> environment of the runner: neither the secret itself nor `GITHUB_ACTIONS=true` gets in. The check
+> which fails the release build is keyed exactly on `GITHUB_ACTIONS`, so it does not fire -
+> `build.rs` prints a `cargo:warning`, `option_env!` returns `None`, the workflow stays green and a
+> binary without the key goes to production. If a monorepo service uses `bake_compile_time_secret` /
+> `bake_compile_time_secrets`, every secret has to be passed into `docker run` explicitly via
+> `-e NAME="${{ secrets.NAME }}"`, plus `-e GITHUB_ACTIONS=true` so that a missing secret paints the
+> step red again. `-e` sets the environment of a single container run and never ends up in the image
+> layers - this is not the same mistake as `--build-arg`.
 
 ## Proto utilities
 
