@@ -5,6 +5,30 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = []
+
+# Downloading a resource over http at all: brings in FlUrl and the tokio runtime a synchronous
+# build.rs has to block on. Off by default - a project which only generates CI files, compiles
+# a proto folder lying next to it or concatenates css pays nothing for it, and a url based call
+# panics telling which feature to switch on.
+download-resource-by-http = ["dep:flurl", "dep:tokio"]
+
+# https on top of it. Kept separate because the rustls stack is the expensive half, and it
+# implies the feature above: a TLS provider is of no use without the downloading code.
+# `with-rust-tls` keeps the provider pure Rust - no C toolchain in a build script - at the cost
+# of building only on x86_64 and aarch64.
+with-tls = ["download-resource-by-http", "flurl/with-rust-tls"]
+
 [dependencies]
 tonic-prost-build = { version = "*" }
-reqwest = { version = "*", features = ["blocking"] }
+flurl = { git = "https://github.com/MyJetTools/fl-url.git", tag = "0.7.0", optional = true }
+# `rt` / `rt-multi-thread` for the runtime the build script blocks on, `time` and `net` for the
+# drivers `enable_all` turns on. Declared explicitly rather than free-ridden off the tokio
+# features FlUrl happens to enable for itself.
+tokio = { version = "*", features = [
+    "rt",
+    "rt-multi-thread",
+    "time",
+    "net",
+], optional = true }

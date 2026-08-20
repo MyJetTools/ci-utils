@@ -1,5 +1,28 @@
 # ci-utils
 
+## Cargo features
+
+Both are off by default: a project which only generates CI files, compiles a proto folder lying
+next to it or concatenates css does not pay for an http client.
+
+- **`download-resource-by-http`** - taking a resource from a url at all: `download_file`,
+  `sync_and_build_proto_file` and `ProtoFileBuilder::new("http://...")`. Brings in FlUrl and the
+  tokio runtime the synchronous `build.rs` blocks on;
+- **`with-tls`** - the same over `https://`. Implies the feature above and adds the rustls stack on
+  FlUrl's pure Rust provider (`with-rust-tls`), so a build script needs no C toolchain - at the
+  cost of building on x86_64 and aarch64 only.
+
+```toml
+[build-dependencies]
+ci-utils = { git = "https://github.com/MyJetTools/ci-utils.git", tag = "<tag carrying the feature>", features = [
+    "with-tls",
+] }
+```
+
+A url used without the matching feature is not silently skipped - the build script panics naming
+the feature to switch on, so the outcome is a red build instead of a proto file compiled from a
+stale local copy.
+
 ## Use cases
 
 ### Generate Dockerfile + GitHub Actions in `build.rs`
@@ -194,6 +217,9 @@ fn main() {
 
 - Downloads `my.api.proto` into `./proto` (unless `skip_syncing`), then compiles it via `tonic_prost_build` with `--experimental_allow_proto3_optional`.
 - You can also call `ci_utils::sync_and_build_proto_file(url, name)` or `ci_utils::compile_protos(path)` directly.
+- A url source needs the `download-resource-by-http` feature, and `with-tls` on top of it for
+  `https://`. A local folder and a relative `../proto-files` path need neither - they are read
+  straight from the disk.
 
 ## File helpers
 
@@ -201,6 +227,7 @@ fn main() {
 ```rust
 ci_utils::download_file("https://example.com/file.txt", "local.txt");
 ```
+Needs `download-resource-by-http`, plus `with-tls` for an `https://` url.
 
 ### CSS concatenation
 ```rust

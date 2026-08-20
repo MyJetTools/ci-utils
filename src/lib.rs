@@ -7,6 +7,7 @@ pub mod css;
 mod generators;
 mod proto_file_utils;
 mod consts;
+mod http_client;
 
 const RELEASE_YAML_CONTENT: &str = std::include_str!("../release.yml");
 const TEST_YAML_CONTENT: &str = std::include_str!("../test.yml");
@@ -86,18 +87,8 @@ pub fn sync_and_build_proto_file(url_resource: &str, proto_file_name: &str) {
 }
 
 pub fn download_file(url_resource: &str, dest_path: &str) {
-    let response = reqwest::blocking::get(url_resource).unwrap();
-
-    if !response.status().is_success() {
-        panic!(
-            "Failed to download file {}. Http Status is: {}",
-            url_resource,
-            response.status()
-        );
-    }
-
-    let content = response.text().unwrap();
-    crate::proto_file_utils::write_file(dest_path, content.as_bytes());
+    let content = crate::http_client::download(url_resource);
+    crate::proto_file_utils::write_file(dest_path, content.as_slice());
 }
 
 fn prepare_proto_files(url_resource: &str, proto_file_name: &str, skip_syncing: bool) -> String {
@@ -111,17 +102,9 @@ fn prepare_proto_files(url_resource: &str, proto_file_name: &str, skip_syncing: 
         return crate::proto_file_utils::format_proto_file_name(proto_file_name);
     }
 
-    let response = reqwest::blocking::get(url.as_str()).unwrap();
-
-    if !response.status().is_success() {
-        panic!(
-            "Failed to download proto file '{}'. Http Status is: {:?}. Using token: false",
-            url, response
-        );
-    }
-    let content = response.text().unwrap();
+    let content = crate::http_client::download(url.as_str());
 
     println!("Proto file {} is downloaded", proto_file_name);
 
-    crate::proto_file_utils::write_proto_file(proto_file_name, content.as_bytes())
+    crate::proto_file_utils::write_proto_file(proto_file_name, content.as_slice())
 }
